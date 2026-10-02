@@ -35,19 +35,19 @@ class FIFOTestHelper:
         """Generates a clean rising and falling edge on wclk (Pin uio[4])."""
         self.wclk = 1
         self._update_uio()
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.wclk = 0
         self._update_uio()
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
 
     async def pulse_rclk(self):
         """Generates a clean rising and falling edge on rclk (Pin uio[5])."""
         self.rclk = 1
         self._update_uio()
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
         self.rclk = 0
         self._update_uio()
-        await Timer(10, units="ns")
+        await Timer(10, unit="ns")
 
     def get_flags(self):
         """Extracts wfull (uio[6]) and rempty (uio[7]) from uio_out bus."""
@@ -68,6 +68,7 @@ class FIFOTestHelper:
         self.winc = 0
         self.rinc = 0
         self._update_uio()
+        await Timer(10, unit="ns")
 
         for _ in range(5):
             await self.pulse_wclk()
@@ -77,6 +78,7 @@ class FIFOTestHelper:
         self.wrst_n = 1
         self.rrst_n = 1
         self._update_uio()
+        await Timer(10, unit="ns")
 
         for _ in range(5):
             await self.pulse_wclk()
@@ -87,26 +89,29 @@ class FIFOTestHelper:
         self.dut.ui_in.value = byte_val & 0xFF
         self.winc = 1
         self._update_uio()
+        await Timer(10, unit="ns")  # Setup time for winc and data before clock edge
         await self.pulse_wclk()
         self.winc = 0
         self._update_uio()
+        await Timer(10, unit="ns")  # Hold time after clock edge
 
-        # Background read clock cycles for 2-stage CDC synchronizer
-        for _ in range(4):
+        # Background read clock cycles for 2-stage CDC synchronizer (requires >= 3 cycles)
+        for _ in range(6):
             await self.pulse_rclk()
 
     async def read_byte(self):
         """Reads one byte from FIFO on rclk, then cycles wclk for CDC synchronizer."""
         self.rinc = 1
         self._update_uio()
+        await Timer(10, unit="ns")  # Setup time for rinc before clock edge
         await self.pulse_rclk()
+        val = int(self.dut.uo_out.value)
         self.rinc = 0
         self._update_uio()
+        await Timer(10, unit="ns")  # Hold time after clock edge
 
-        val = int(self.dut.uo_out.value)
-
-        # Background write clock cycles for 2-stage CDC synchronizer
-        for _ in range(4):
+        # Background write clock cycles for 2-stage CDC synchronizer (requires >= 3 cycles)
+        for _ in range(6):
             await self.pulse_wclk()
 
         return val
