@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) 2026 Shlomo Abrams
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 `default_nettype none
 `timescale 1ns / 1ps
 
@@ -28,7 +33,7 @@ module tb ();
 `endif
 
   // Replace tt_um_example with your module name:
-  tt_um_example user_project (
+  tt_um_shlomo_fifo user_project (
 
       // Include power ports for the Gate Level test:
 `ifdef GL_TEST
